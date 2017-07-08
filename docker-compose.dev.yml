@@ -1,0 +1,27 @@
+version: '3'
+services:
+
+  client:
+    build:
+      context: ./client/
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./client/src:/gs/client/src:ro
+      - client-dist:/gs/client/dist
+
+  server:
+    environment:
+      GTSEARCH_ADDRESS: "0.0.0.0"
+      GTSEARCH_PORT: "80"
+    build:
+      context: ./server/
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./server/src:/gs/server/src:ro
+      - ./client/index.html:/gs/client/index.html:ro
+      - client-dist:/gs/client/dist:ro
+    ports:
+      - "8081:80"
+
+volumes:
+  client-dist:
