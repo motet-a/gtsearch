@@ -14,11 +14,11 @@ repositories. Moreover, the `gtsearch` server streams results via
 WebSockets to the client in order to show the first matches instantly.
 
 `gtsearch` starts one `grep` process per search. When some results
-doesn't fit on the client screen, the `grep` process is paused (with
-`kill(SIGTSTP)`). When the user scrolls down the result list, the
-server resumes the `grep` process (with `kill(SIGCONT)`). When the
-user starts a new search, the previous `grep` process is killed (with
-`kill(SIGTERM)`). It’s a bit tricky but it works.
+don't fit on the client screen, the `grep` process is paused with
+`kill(SIGTSTP)`. When the user scrolls down the result list, the
+server resumes the `grep` process with `kill(SIGCONT)`. When the user
+starts a new search, the previous `grep` process is killed with
+`kill(SIGTERM)`. It’s a bit tricky but it works.
 
 However, `grep` is much slower with specific queries on very large
 repositories. Consider using [Hound] or [Livegrep] instead.
@@ -31,7 +31,7 @@ them. Please send PRs.
 # Deploy
 
 ```sh
-docker run --d -p 8080:8080 -e GTSEARCH_ADDRESS=0.0.0.0 moteta/gtsearch:0.2
+docker run --d -p 8080:8080 -e GTSEARCH_ADDRESS=0.0.0.0 moteta/gtsearch:0.3
 ```
 
 It listens on `localhost` by default.
