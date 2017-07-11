@@ -29,8 +29,8 @@ const isClonesError = error =>
 const execGit = async (args, options) => {
     const env = {
         // Sometimes some Git commands ask for a password.
-        // But they bypasses the piped stdin and read directly
-        // from the TTY by default.
+        // But they bypass the piped stdin stream and read directly
+        // from the TTY by default. Shit happens.
         // This hack forces Git not to ask for passwords.
         GIT_ASKPASS: 'echo',
     }
