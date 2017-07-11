@@ -7,6 +7,8 @@ which does not require to index files.
 
 [Here](http://gtsearch.3.141.ovh/) is a running demo instance.
 
+![demo-gif-image](demo.gif?raw=true)
+
 # Is it slow?
 
 Yes and no. `grep` on Linux is blazing fast on small
