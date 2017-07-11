@@ -40,24 +40,34 @@ const handleRequest = (req, res) => {
     return client.streamFile('index.html')
 }
 
+// Returns [name, stream] or null
+const getCompressionStream = req => {
+    switch (accepts(req).encoding(['gzip', 'deflate'])) {
+        case 'gzip':
+            return ['gzip', zlib.createGzip()]
+
+        case 'deflate':
+            return ['deflate', zlib.createDeflate()]
+    }
+
+    return null
+}
+
 const handleCompressedRequest = (req, res) => {
     let stream = handleRequest(req, res)
     if (!stream) {
         return
     }
 
-    switch (accepts(req).encoding(['gzip', 'deflate'])) {
-        case 'gzip':
-            res.setHeader('Content-Encoding', 'gzip')
-            stream = stream.pipe(zlib.createGzip())
-            break
-
-        case 'deflate':
-            res.setHeader('Content-Encoding', 'deflate')
-            stream = stream.pipe(zlib.createInflate())
-            break
+    const compression = getCompressionStream(req)
+    if (compression) {
+        const [name, compressor] = compression
+        res.setHeader('Content-Encoding', name)
+        compressor.on('error', console.error)
+        stream = stream.pipe(compressor)
     }
 
+    stream.on('error', console.error)
     stream.pipe(res)
 }
 
