@@ -38,8 +38,8 @@ docker run --d -p 8080:8080 -e GTSEARCH_ADDRESS=0.0.0.0 moteta/gtsearch:0.4
 
 It listens on `localhost` by default.
 
-The repositories and the SQLite files are stored in `/gs/server/var/`
-in the container. Feel free to create a volume.
+Repositories and SQLite files are stored at `/gs/server/var/` in the 
+container. Feel free to create a volume.
 
 That’s it.
 
