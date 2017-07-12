@@ -74,6 +74,9 @@ const search = (state = null, action) => {
                 results: state.results || [],
                 loading: false,
             }
+
+        case 'clearSearch':
+            return null
     }
     return state
 }

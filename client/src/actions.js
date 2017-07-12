@@ -107,12 +107,14 @@ const receivePullRepoError = error => ({
 
 
 const requestSearch = ({repoName, query}) => dispatch => {
-    dispatch({type: 'wsRequestSearch', repoName, query})
     if (query) {
-        wsSend({type: 'search', repoName, query})
+        dispatch({type: 'wsRequestSearch', repoName, query})
     } else {
-        dispatch(receiveSearchEnd({repoName, query}))
+        dispatch({type: 'clearSearch'})
     }
+
+    // Kills the current search process if the query is empty
+    wsSend({type: 'search', repoName, query})
 }
 
 const requestSearchLoadMore = () => dispatch =>  {

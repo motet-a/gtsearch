@@ -279,12 +279,12 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
             return
         }
 
-        if (!query.query) {
-            return
-        }
-
         if (currentSearch) {
             currentSearch.kill()
+        }
+
+        if (!query.query) {
+            return
         }
 
         const search = searches.search({
