@@ -14,3 +14,4 @@ docker tag gtsearch:latest moteta/gtsearch:${new_version}
 docker push moteta/gtsearch:${new_version}
 
 git push
+git push origin v${new_version}
