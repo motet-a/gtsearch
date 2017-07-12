@@ -61,7 +61,7 @@ class Search extends EventEmitter {
         process.on('error', error => this._onError(error))
 
         process.stderr.on('data', data => {
-            this.emit('stderr', data)
+            this.emit('stderr', data.toString())
         })
 
         process.stdout.on('data', data => {

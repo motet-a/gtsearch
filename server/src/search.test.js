@@ -17,7 +17,7 @@ describe('Search', () => {
         )
     })
 
-    it("raises an 'exit' event when killed", () => {
+    it("raises an 'exit' event when killed", done => {
         const p = createSearch('search')
         assert(!p.exited)
 
@@ -41,6 +41,12 @@ describe('Search', () => {
         )
 
         assert(onError.notCalled)
+
+        setTimeout(() => {
+            assert(onError.notCalled)
+            assert(onExit.calledOnce)
+            done()
+        }, 10)
     })
 
     it('works', done => {
