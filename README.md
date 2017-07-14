@@ -1,6 +1,8 @@
 
 # gtsearch
 
+[![Build Status](https://travis-ci.org/motet-a/gtsearch.svg?branch=master)](https://travis-ci.org/motet-a/gtsearch)
+
 This is a web server and web client for GNU grep and Git
 repositories. It is a kind of a much simpler [Hound] or [Livegrep],
 which does not require to index files.
