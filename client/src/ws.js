@@ -6,7 +6,39 @@ const {WebSocket} = window
 
 let eventsToSend = []
 
-const ws = new WebSocket('ws://' + location.host + '/ws')
+let ws
+
+const connect = () => {
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+        throw new Error('WebSocket not closed')
+    }
+
+    ws = new WebSocket('ws://' + location.host + '/ws')
+
+    ws.onopen = event => {
+        ws.onmessage = event => {
+            const data = JSON.parse(event.data)
+            dispatchMessage(data.type, data.body)
+        }
+    }
+
+    ws.onclose = ws.onerror = reconnect
+}
+
+const reconnect = () => {
+    ws.close()
+
+    setTimeout(() => {
+        if (ws.readyState === WebSocket.CLOSED) {
+            connect()
+            return
+        }
+
+        reconnect()
+    }, 1000)
+}
+
+connect()
 
 const dispatchMessage = (type, body) => {
     switch (type) {
@@ -67,21 +99,15 @@ const dispatchMessage = (type, body) => {
     throw new Error('Unknown ws event type: ' + event.data)
 }
 
-ws.onmessage = event => {
-    const data = JSON.parse(event.data)
-    dispatchMessage(data.type, data.body)
-}
-
 const tryToSendEvent = event => {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(event))
         eventsToSend = eventsToSend.filter(e => e !== event)
     }
 }
 
-const tryToSendEvents = () => {
+const tryToSendEvents = () =>
     eventsToSend.forEach(tryToSendEvent)
-}
 
 export const send = event => {
     eventsToSend = [...eventsToSend, event]
