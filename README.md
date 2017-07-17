@@ -43,6 +43,9 @@ It listens on `localhost` by default.
 Repositories and SQLite files are stored at `/gs/server/var/` in the 
 container. Feel free to create a volume.
 
+The admin password is printed on stdout. Copy and paste it in [the /login form](http://localhost:8080/login)
+in order to add the first repository.
+
 That’s it.
 
 [Hound]: https://github.com/etsy/hound
