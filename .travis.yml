@@ -1,19 +1,27 @@
 
 dist: trusty
-sudo: false
+sudo: true
 language: node_js
 
 node_js: "8"
 
-cache: yarn
+cache:
+  yarn: true
+  directories:
+    - server/node_modules
+    - client/node_modules
 
 env:
-  - NODE_ENV=development
+  - NODE_ENV=development GTSEARCH_SERVER_HOST_FROM_SELENIUM=192.168.0.1
 
 install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 0.27.5
   - export PATH="$HOME/.yarn/bin:$PATH"
+  - cd client && yarn && cd ..
   - cd server && yarn
 
 script:
+  - docker network create -d bridge --subnet 192.168.0.0/24 --gateway 192.168.0.1 dockernet
+  - docker run --net dockernet --rm -v /dev/shm:/dev/shm --name selenium -d -p 4444:4444 selenium/standalone-chrome
+  - cd ../client && yarn run build && cd ../server
   - yarn run test

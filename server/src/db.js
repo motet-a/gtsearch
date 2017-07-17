@@ -213,7 +213,7 @@ class Db {
     }
 }
 
-const newDb = async fileName => {
+const createDb = async fileName => {
     assert(typeof fileName === 'string')
 
     const filePath = path.join(
@@ -225,6 +225,6 @@ const newDb = async fileName => {
     return db
 }
 
-Object.assign(newDb, {repoSpec, errors, isDbError})
+Object.assign(createDb, {repoSpec, errors, isDbError})
 
-module.exports = newDb
+module.exports = createDb

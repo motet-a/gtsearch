@@ -4,10 +4,7 @@ const WebSocket = require('ws')
 const {promisify} = require('util')
 const EventEmitter = require('events')
 
-const createSearches = require('./searches')
-const {dummyLogger} = require('./log')
-const createDb = require('./db')
-const createClones = require('./clones')
+const createTestServer = require('./create-test-server')
 const serve = require('./serve')
 
 
@@ -74,35 +71,23 @@ const fixtures = {
 
 
 describe('ws', () => {
+    let serverConfig
     let db
-    let clones
-    let searches
-    let server
     let adminPassword
 
     let admin
     let user
 
-    const address = 'localhost'
-    const port = 8081
-
     const createClient = () =>
-        new Client(new WebSocket('ws://' + address + ':' + port))
+        new Client(new WebSocket(
+            'ws://' + serverConfig.address + ':' + serverConfig.port
+        ))
 
     before(async () => {
-        assert(!server)
-        db = await createDb('test')
-        await db._db.truncateTables()
-        await db.setupAdmin()
-        adminPassword = await db.resetAdminPassword()
-        clones = createClones('test-clones')
-        searches = createSearches()
-
-        server = await serve({
-            db, clones, searches,
-            address, port,
-            log: dummyLogger,
-        })
+        assert(!serverConfig)
+        serverConfig = await createTestServer()
+        db = serverConfig.db
+        adminPassword = serverConfig.adminPassword
 
         admin = createClient()
         user = createClient()
@@ -113,8 +98,8 @@ describe('ws', () => {
         await user.receive()
     })
 
-    after(async () => {
-        server.close()
+    after(() => {
+        serverConfig.server.close()
     })
 
     beforeEach(async () => {

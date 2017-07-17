@@ -2,8 +2,10 @@
 
 cd "$(dirname "$0")"
 
-alias dc="docker-compose -f docker-compose.dev.yml"
+alias dc="docker-compose -p gtsearch -f docker-compose.test.yml"
 dc build
-alias run="dc run --rm server"
+alias exec="dc run --rm server"
 
-run yarn run test
+dc up -d
+dc exec server yarn run test
+dc down

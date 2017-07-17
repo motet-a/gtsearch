@@ -169,9 +169,9 @@ class Clones {
     }
 }
 
-const newClones = baseDirName =>
+const createClones = baseDirName =>
     new Clones(baseDirName)
 
-Object.assign(newClones, {errors, isClonesError})
+Object.assign(createClones, {errors, isClonesError})
 
-module.exports = newClones
+module.exports = createClones

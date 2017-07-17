@@ -11,10 +11,6 @@ COPY package.json yarn.lock ./
 
 ENV NODE_ENV=development
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python \
-    && yarn \
-    && apt-get purge -y --auto-remove python \
-    && rm -rf /var/lib/apt/lists/*
+RUN yarn
 
 CMD ["yarn", "run", "watch"]
