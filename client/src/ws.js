@@ -25,10 +25,12 @@ const connect = () => {
     ws.onclose = ws.onerror = reconnect
 }
 
+let connectionTimeout
 const reconnect = () => {
     ws.close()
 
-    setTimeout(() => {
+    clearTimeout(connectionTimeout)
+    connectionTimeout = setTimeout(() => {
         if (ws.readyState === WebSocket.CLOSED) {
             connect()
             return
