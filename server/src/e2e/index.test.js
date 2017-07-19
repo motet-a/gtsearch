@@ -2,49 +2,133 @@
 const {assert} = require('chai')
 const wdio = require('webdriverio')
 
+const fixtures = require('../test-fixtures')
 const createTestServer = require('../create-test-server')
+const Client = require('../ws-test-client')
+const util = require('./util')
+const {navigate, browser, assertPath} = util
 
 describe('e2e', function () {
     this.timeout(1000 * 1000)
 
-    let client
     let serverConfig
+    let client
 
-    const serverHostFormSelenium = process.env.GTSEARCH_SERVER_HOST_FROM_SELENIUM || 'server'
+    const createClient = () =>
+        new Client('ws://' + serverConfig.address + ':' + serverConfig.port)
 
-    const navigate = (path = '') =>
-        client.url('http://' + serverHostFormSelenium + ':' + serverConfig.port)
+    const createAdmin = async () => {
+        let admin = createClient()
+
+        // Wait for the `hello` message from the server to make sure
+        // the websockets are opened
+        await admin.receive()
+
+        admin.flushReceivedMessages()
+        admin.send({
+            type: 'login',
+            plaintextPassword: serverConfig.adminPassword,
+        })
+        assert.deepEqual(
+            await admin.receive(),
+            {type: 'login'},
+        )
+        admin.flushReceivedMessages()
+        admin.send({
+            type: 'createRepo',
+            name: 'yan',
+            gitUrl: fixtures.yan.gitUrl,
+            webUrl: '',
+        })
+
+        assert.deepEqual(
+            await admin.receive(),
+            {
+                type: 'createRepo',
+                body: 'yan',
+            },
+        )
+    }
 
     before(async () => {
         serverConfig = await createTestServer()
+        util.setServerConfig(serverConfig)
+        const {db} = serverConfig
+        await db._db.run('DELETE FROM `repos`;')
 
-        client = wdio.remote({
+        await createAdmin()
+
+        util.setBrowser(wdio.remote({
             host: process.env.GTSEARCH_SELENIUM_HOST || 'localhost',
             port: ~~process.env.GTSEARCH_SELENIUM_PORT || 4444,
             desiredCapabilities: {
                 browserName: 'chrome',
             },
-        })
+            screenshotPath: __dirname,
+            screenshotOnReject: true,
+        }))
 
-        await client.init()
+        await browser().init()
+    })
+
+    beforeEach(async () => {
+        const {db, clones} = serverConfig
+
+        const repos = await db.getRepos()
+        for (const repo of repos) {
+            if (repo.name !== 'yan') {
+                await db.deleteRepo(repo.name)
+                await clones.remove(repo.name)
+            }
+        }
     })
 
     after(async () => {
         serverConfig.server.close()
-        await client.endAll()
+        if (browser()) {
+            await browser().endAll()
+        }
     })
 
-    it('loads properly the index page',
-       () => {
-           return navigate()
-               .getTitle().then(title => assert(title === 'gtsearch'))
-               .getText('h1').then(text => assert(text === 'repositories'))
-       }
+    it('loads properly the index page', () =>
+        navigate()
+            .getTitle().then(
+                title => assert(title === 'gtsearch')
+            )
+
+            .getAttribute('header a', 'href').then(
+                assertPath('/')
+            )
+
+            .getText('h1').then(
+                text => assert(text === 'repositories')
+            )
+
+            .getUrl().then(
+                assertPath('/')
+            )
     )
 
-    it('clones a repository')
+    it('navigates between pages, keeping the browser URL in sync', () =>
+        navigate()
+            .click('header a')
 
-    it('pulls an existing repository')
+            .getUrl().then(
+                assertPath('/')
+            )
 
-    it('searches in a repository')
+            .click('footer a:nth-child(2)') // `login` link
+
+            .getUrl().then(
+                assertPath('/login')
+            )
+
+            .click('footer a:nth-child(1)') // `about` link
+
+            .getUrl().then(
+                url => assert(url === 'https://github.com/motet-a/gtsearch')
+            )
+    )
+
+    require('./repos.test')
 })

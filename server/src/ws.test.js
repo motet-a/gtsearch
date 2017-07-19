@@ -1,74 +1,12 @@
 
 const {assert} = require('chai')
-const WebSocket = require('ws')
 const {promisify} = require('util')
 const EventEmitter = require('events')
 
+const Client = require('./ws-test-client')
 const createTestServer = require('./create-test-server')
 const serve = require('./serve')
-
-
-class Client {
-    constructor(websocket) {
-        this._ws = websocket
-        this._receivedMessages = []
-        websocket.on('message', msg => {
-            this._receivedMessages.push(JSON.parse(msg))
-        })
-    }
-
-    async receive() {
-        if (this._receivedMessages.length) {
-            const msg = this._receivedMessages[0]
-            this._receivedMessages.shift()
-            return msg
-        }
-
-        return await new Promise(resolve => {
-            this._ws.once('message', () => resolve(this.receive()))
-        })
-    }
-
-    flushReceivedMessages() {
-        this._receivedMessages = []
-    }
-
-    send(message) {
-        this._ws.send(JSON.stringify(message))
-    }
-
-    terminate() {
-        this._ws.terminate()
-    }
-
-    async isLoggedIn() {
-        this.send({type: 'loggedIn'})
-
-        const res = await this.receive()
-        assert(res.type === 'loggedIn')
-        return res.body
-    }
-}
-
-
-const fixtures = {
-    ws: {
-        name: 'ws',
-        gitUrl: 'https://github.com/websockets/ws.git',
-        webUrl: '',
-        cloned: false,
-        fetchFailed: false,
-    },
-
-    yan: {
-        name: 'yan',
-        gitUrl: 'https://github.com/motet-a/yan.git',
-        webUrl: '',
-        cloned: false,
-        fetchFailed: false,
-    },
-}
-
+const fixtures = require('./test-fixtures')
 
 describe('ws', () => {
     let serverConfig
@@ -79,9 +17,7 @@ describe('ws', () => {
     let user
 
     const createClient = () =>
-        new Client(new WebSocket(
-            'ws://' + serverConfig.address + ':' + serverConfig.port
-        ))
+        new Client('ws://' + serverConfig.address + ':' + serverConfig.port)
 
     before(async () => {
         assert(!serverConfig)
