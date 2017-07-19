@@ -1,16 +1,16 @@
 
 module.exports = {
-    ws: {
-        name: 'ws',
-        gitUrl: 'https://github.com/websockets/ws.git',
+    upl: {
+        name: 'upl',
+        gitUrl: 'https://github.com/jslicense/jslicense-upl-1.0.git',
         webUrl: '',
         cloned: false,
         fetchFailed: false,
     },
 
-    yan: {
-        name: 'yan',
-        gitUrl: 'https://github.com/motet-a/yan.git',
+    mit: {
+        name: 'mit',
+        gitUrl: 'https://github.com/jslicense/jslicense-mit.git',
         webUrl: '',
         cloned: false,
         fetchFailed: false,

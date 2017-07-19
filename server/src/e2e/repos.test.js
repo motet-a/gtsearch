@@ -1,6 +1,8 @@
 
 const {assert} = require('chai')
+
 const {navigate, assertPath, login, browser} = require('./util')
+const fixtures = require('../test-fixtures')
 
 describe('repos', () => {
     it('shows the repository list', async () => {
@@ -12,11 +14,11 @@ describe('repos', () => {
             )
 
             .getText(link + ' strong').then(
-                t => assert(t === 'yan')
+                t => assert(t === 'upl')
             )
 
             .getAttribute(link, 'href').then(
-                assertPath('/repository/yan')
+                assertPath('/repository/upl')
             )
     })
 
@@ -50,7 +52,7 @@ describe('repos', () => {
         browser()
             .waitUntil(
                 async () => !await statusExists(),
-                10 * 1000,
+                2 * 1000,
             )
 
     it('clones a repository', async () => {
@@ -75,18 +77,18 @@ describe('repos', () => {
 
             .setValue(
                 '.CreateRepoPage input:first-of-type',
-                'gtsearch',
+                'mit',
             )
             .setValue(
                 '.CreateRepoPage input:last-of-type',
-                'https://github.com/motet-a/gtsearch.git',
+                fixtures.mit.gitUrl,
             )
             .click('.CreateRepoPage .Button')
 
             .pause(200)
 
             .getUrl().then(
-                assertPath('/repository/gtsearch/info')
+                assertPath('/repository/mit/info')
             )
 
         assert(
@@ -98,15 +100,15 @@ describe('repos', () => {
 
     it('pulls an existing repository', async () => {
         await login()
-            .click('a.RepoLink=yan')
+            .click('a.RepoLink=upl')
             .pause(200)
             .getUrl().then(
-                assertPath('/repository/yan')
+                assertPath('/repository/upl')
             )
-            .click('a=yan')
+            .click('a=upl')
             .pause(200)
             .getUrl().then(
-                assertPath('/repository/yan/info')
+                assertPath('/repository/upl/info')
             )
             .click('.Button=pull')
 

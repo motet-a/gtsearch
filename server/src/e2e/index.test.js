@@ -36,8 +36,8 @@ describe('e2e', function () {
         admin.flushReceivedMessages()
         admin.send({
             type: 'createRepo',
-            name: 'yan',
-            gitUrl: fixtures.yan.gitUrl,
+            name: 'upl',
+            gitUrl: fixtures.upl.gitUrl,
             webUrl: '',
         })
 
@@ -45,7 +45,7 @@ describe('e2e', function () {
             await admin.receive(),
             {
                 type: 'createRepo',
-                body: 'yan',
+                body: 'upl',
             },
         )
     }
@@ -76,7 +76,7 @@ describe('e2e', function () {
 
         const repos = await db.getRepos()
         for (const repo of repos) {
-            if (repo.name !== 'yan') {
+            if (repo.name !== 'upl') {
                 await db.deleteRepo(repo.name)
                 await clones.remove(repo.name)
             }

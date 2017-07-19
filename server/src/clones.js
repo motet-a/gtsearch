@@ -106,8 +106,8 @@ class Clones {
             await execGit(
                 [
                     'clone',
+                    '--single-branch',
                     '--quiet',
-                    '--depth=1',
                     '--',
                     url,
                     dir,
@@ -138,7 +138,6 @@ class Clones {
                     'fetch',
                     '-f',
                     '--quiet',
-                    '--depth=1',
                     'origin',
                     branch,
                 ],

@@ -2,6 +2,7 @@
 const {assert} = require('chai')
 const path = require('path')
 
+const fixtures = require('./test-fixtures')
 const createClones = require('./clones')
 const {isClonesError, errors: clonesErrors} = createClones
 const {fileExists} = require('./util')
@@ -17,9 +18,9 @@ describe('clones', () => {
 
         assert(!await clones.exists('r'))
 
-        await clones.clone('https://github.com/motet-a/yan.git', 'r')
+        await clones.clone(fixtures.upl.gitUrl, 'r')
         assert(await clones.exists('r'))
-        assert(await fileExists(path.join(basePath, 'r', 'yan.py')))
+        assert(await fileExists(path.join(basePath, 'r', 'package.json')))
 
         assert(await clones._getCurrentBranch('r') === 'master')
 
@@ -27,7 +28,7 @@ describe('clones', () => {
 
         await clones.remove('r')
         assert(!await clones.exists('r'))
-        assert(!await fileExists(path.join(basePath, 'r', 'yan.py')))
+        assert(!await fileExists(path.join(basePath, 'r', 'package.json')))
     }).timeout(10 * 1000)
 
     it('fails with a nonexistent repo', async () => {

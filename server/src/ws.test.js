@@ -57,7 +57,7 @@ describe('ws', () => {
         assert(await admin.isLoggedIn())
 
         await db._db.run('DELETE FROM `repos`;')
-        await db.insertRepo(fixtures.ws)
+        await db.insertRepo(fixtures.upl)
     })
 
 
@@ -149,7 +149,7 @@ describe('ws', () => {
             admin.send({
                 type: 'createRepo',
                 name: '',
-                gitUrl: 'https://github.com/motet-a/yan.git',
+                gitUrl: fixtures.mit.gitUrl,
                 webUrl: '',
             })
 
@@ -165,7 +165,7 @@ describe('ws', () => {
 
             admin.send({
                 type: 'createRepo',
-                name: 'yan',
+                name: 'mit',
                 gitUrl: 'badurl',
                 webUrl: '',
             })
@@ -185,7 +185,7 @@ describe('ws', () => {
         it('fails if a similarly named repository already exists', async () => {
             admin.send(Object.assign(
                 {type: 'createRepo'},
-                fixtures.ws,
+                fixtures.upl,
             ))
 
             assert.deepEqual(
@@ -194,7 +194,7 @@ describe('ws', () => {
                     type: 'createRepoError',
                     body: {
                         type: 'nameAlreadyExists',
-                        name: 'ws',
+                        name: 'upl',
                     },
                 }
             )
@@ -203,8 +203,8 @@ describe('ws', () => {
         it('works', async () => {
             admin.send({
                 type: 'createRepo',
-                name: 'yan',
-                gitUrl: fixtures.yan.gitUrl,
+                name: fixtures.mit.name,
+                gitUrl: fixtures.mit.gitUrl,
                 webUrl: '',
             })
 
@@ -212,7 +212,7 @@ describe('ws', () => {
                 await admin.receive(),
                 {
                     type: 'createRepo',
-                    body: 'yan',
+                    body: 'mit',
                 },
             )
 
@@ -220,7 +220,7 @@ describe('ws', () => {
                 type: 'repo',
                 body: Object.assign(
                     {beingFetched: true},
-                    fixtures.yan,
+                    fixtures.mit,
                 ),
             }
 
@@ -240,7 +240,7 @@ describe('ws', () => {
                     type: 'repo',
                     body: Object.assign(
                         {},
-                        fixtures.yan,
+                        fixtures.mit,
                         {cloned: true, beingFetched: false},
                     ),
                 },
@@ -270,7 +270,7 @@ describe('ws', () => {
         it('works', async () => {
             user.send({
                 type: 'fetchRepo',
-                name: fixtures.ws.name,
+                name: fixtures.upl.name,
             })
 
             assert.deepEqual(
@@ -279,7 +279,7 @@ describe('ws', () => {
                     type: 'repo',
                     body: Object.assign(
                         {beingFetched: false},
-                        fixtures.ws,
+                        fixtures.upl,
                     ),
                 },
             )
@@ -299,7 +299,7 @@ describe('ws', () => {
                     body: [
                         Object.assign(
                             {beingFetched: false},
-                            fixtures.ws,
+                            fixtures.upl,
                         )
                     ],
                 },
@@ -321,13 +321,13 @@ describe('ws', () => {
         })
 
         it('works', async () => {
-            admin.send({type: 'deleteRepo', name: 'ws'})
+            admin.send({type: 'deleteRepo', name: 'upl'})
 
             assert.deepEqual(
                 await admin.receive(),
                 {
                     type: 'deleteRepo',
-                    body: 'ws',
+                    body: 'upl',
                 },
             )
 
@@ -335,7 +335,7 @@ describe('ws', () => {
                 await user.receive(),
                 {
                     type: 'deleteRepo',
-                    body: 'ws',
+                    body: 'upl',
                 },
             )
 
