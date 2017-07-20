@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt')
 const assert = require('assert')
 const {promisify} = require('util')
 
+const migrate = require('./migrate')
 const {randomString} = require('./util')
 const sqlite = require('./sqlite-promise')
 
@@ -51,23 +52,6 @@ class Db {
     // Returns a Promise
     close() {
         promisify(cb => this._db.close(cb))
-    }
-
-    async _setup() {
-        await this._db.exec(
-            `CREATE TABLE IF NOT EXISTS repos (
-                name TEXT NOT NULL PRIMARY KEY,
-                webUrl TEXT NOT NULL,
-                gitUrl TEXT NOT NULL,
-                cloned INTEGER NOT NULL,
-                fetchFailed INTEGER NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS admin (
-                id INTEGER PRIMARY KEY CHECK (id = 0),
-                hashedPassword TEXT NOT NULL
-            );`
-        )
     }
 
     async getRepos() {
@@ -200,7 +184,7 @@ class Db {
         await this._db.run(
             `UPDATE admin
             SET hashedPassword = ?
-            WHERE id = 0`,
+            WHERE id = 0;`,
             hashedPassword
         )
     }
@@ -213,15 +197,21 @@ class Db {
     }
 }
 
-const createDb = async fileName => {
+const createDb = async (fileName, options = {}) => {
+    const {dropTables} = options
+
     assert(typeof fileName === 'string')
 
     const filePath = path.join(
         __dirname, '..', 'var', fileName + '.sqlitedb'
     )
 
-    const db = new Db(await sqlite(filePath))
-    await db._setup()
+    const rawDB = await sqlite(filePath)
+    if (dropTables) {
+        await rawDB.dropTables()
+    }
+    await migrate(rawDB)
+    const db = new Db(rawDB)
     return db
 }
 

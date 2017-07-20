@@ -9,8 +9,7 @@ module.exports = async () => {
     const address = '0.0.0.0'
     const port = 8081
 
-    const db = await createDb('test')
-    await db._db.truncateTables()
+    const db = await createDb('test', {dropTables: true})
     await db.setupAdmin()
 
     const adminPassword = await db.resetAdminPassword()

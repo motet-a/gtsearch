@@ -35,6 +35,15 @@ const promisifyDb = db => {
                 n => self.run('DELETE FROM `' + n + '`;')
             ))
         },
+
+        async tableExists(tableName) {
+            return !!await self.get(
+                `SELECT name
+                FROM sqlite_master
+                WHERE type='table' AND name=?;`,
+                tableName
+            )
+        },
     }
 
     return self

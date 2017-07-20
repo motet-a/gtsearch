@@ -39,8 +39,7 @@ describe('db', () => {
     let db
 
     beforeEach(async () => {
-        db = await createDb('test')
-        await db._db.truncateTables()
+        db = await createDb('test', {dropTables: true})
         await db.setupAdmin()
     })
     afterEach(async () => {
@@ -50,7 +49,7 @@ describe('db', () => {
     it('creates tables', async () => {
         assert.deepEqual(
             await db._db.getTableNames(),
-            ['admin', 'repos']
+            ['admin', 'migrations', 'repos']
         )
     })
 
