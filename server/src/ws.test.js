@@ -1,5 +1,5 @@
 
-const {assert} = require('chai')
+const assert = require('assert')
 const {promisify} = require('util')
 const EventEmitter = require('events')
 

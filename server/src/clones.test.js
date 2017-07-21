@@ -1,5 +1,5 @@
 
-const {assert} = require('chai')
+const assert = require('assert')
 const path = require('path')
 
 const fixtures = require('./test-fixtures')

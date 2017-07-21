@@ -1,5 +1,5 @@
 
-const {assert} = require('chai')
+const assert = require('assert')
 
 const createDb = require('./db')
 const {repoEqual, repoListEqual} = require('./util')

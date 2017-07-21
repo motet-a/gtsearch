@@ -1,5 +1,5 @@
 
-const {assert} = require('chai')
+const assert = require('assert')
 const wdio = require('webdriverio')
 
 const fixtures = require('../test-fixtures')
