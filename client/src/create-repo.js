@@ -74,6 +74,7 @@ class CreateRepoPageV extends React.Component {
             h1('add a repository'),
 
             input({
+                type: 'text',
                 placeholder: 'unique name',
                 autoFocus: true,
                 onKeyPress: this.keyPressed,
@@ -81,6 +82,7 @@ class CreateRepoPageV extends React.Component {
             }),
 
             input({
+                type: 'text',
                 placeholder: 'git repository url',
                 onKeyPress: this.keyPressed,
                 onChange: e => this.setState({gitUrl: e.target.value}),

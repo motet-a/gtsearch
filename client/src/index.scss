@@ -1,6 +1,5 @@
 
 $blue: rgba(5, 102, 141, 1);
-$light-blue: #47a1ad;
 $green: rgba(2, 195, 154, 1);
 $yellow: rgba(240, 243, 189, 1);
 $gray: #aaa;
@@ -145,6 +144,8 @@ a.Button {
     }
 
     .Result {
+        padding: 0.125rem 0;
+
         display: flex;
         font-family: monospace;
         text-decoration-color: $gray !important;
