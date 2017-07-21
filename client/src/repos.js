@@ -17,7 +17,7 @@ const RepoLink = f(({repo}) =>
             className: classnames(
                 'RepoLink',
                 !repo.cloned && 'RepoLink--notCloned',
-                repo.fetchFailed && 'RepoLink--fetchFailed',
+                repo.pullFailed && 'RepoLink--pullFailed',
             ),
             routeName: repo.cloned ? 'repositorySearch' : 'repositoryInfo',
             routeParams: {name: repo.name},

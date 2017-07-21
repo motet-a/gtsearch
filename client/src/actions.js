@@ -89,23 +89,6 @@ const receiveDeleteRepoError = error => ({
 
 
 
-const requestPullRepo = name => dispatch => {
-    dispatch({type: 'wsRequestPullRepo', name})
-    wsSend({type: 'pullRepo', name})
-}
-
-const receivePullRepo = name => ({
-    type: 'wsReceivePullRepo',
-    name,
-})
-
-const receivePullRepoError = error => ({
-    type: 'wsReceivePullRepoError',
-    error,
-})
-
-
-
 const requestSearch = ({repoName, query}) => dispatch => {
     if (query) {
         dispatch({type: 'wsRequestSearch', repoName, query})
@@ -159,10 +142,6 @@ export default {
     requestDeleteRepo,
     receiveDeleteRepo,
     receiveDeleteRepoError,
-
-    requestPullRepo,
-    receivePullRepo,
-    receivePullRepoError,
 
     requestLogout,
 

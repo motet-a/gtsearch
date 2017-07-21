@@ -2,7 +2,6 @@ const WebSocket = require('ws')
 const assert = require('assert')
 const V = require('@motet_a/validate')
 
-const {consoleLogger} = require('./log')
 const {repoSpec, isDbError, errors: dbErrors} = require('./db')
 const {isClonesError, errors: clonesErrors} = require('./clones')
 const {isValidGitUrl} = require('./util')
@@ -13,10 +12,8 @@ let _loggedInWs = null
 const capitalize = string =>
     string.charAt(0).toUpperCase() + string.slice(1)
 
-module.exports = ({wss, ws, req, db, clones, searches, log}) => {
-    assert(wss && ws && req && db && clones && searches)
-
-    log = log || consoleLogger
+module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
+    assert(wss && ws && req && db && clones && searches && pullCron && log)
 
     const badMessageReceived = descr =>
         log.error('bad message received' + (descr ? ': ' + descr : ''))
@@ -55,7 +52,7 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
     const getRepo = async name => {
         const repo = await db.getRepo(name)
         if (repo) {
-            repo.beingFetched = clones.isBeingFetched(name)
+            repo.beingPulled = clones.isBeingPulled(name)
         }
         return repo
     }
@@ -65,7 +62,7 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
         try {
             name = repoSpec.pick('name')(msg).name
         } catch (error) {
-            send('fetchRepoError', {type: 'badRequest'})
+            send('pullRepoError', {type: 'badRequest'})
             return
         }
 
@@ -108,7 +105,7 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
     const handleFetchRepos = async msg => {
         const repos = (await db.getRepos())
             .map(r => {
-                r.beingFetched = clones.isBeingFetched(r.name)
+                r.beingPulled = clones.isBeingPulled(r.name)
                 return r
             })
 
@@ -140,21 +137,19 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
     }
 
     const cloneRepo = async ({url, name}) => {
-        const onFetchStart = () => broadcastRepo(name)
         log.info('cloning ' + name + ' from ' + url)
 
         try {
-            await clones.clone(url, name, {onFetchStart})
+            await clones.clone(url, name)
         } catch (error) {
             log.error(error)
 
-            await db.setRepoFetchFailed(name, true)
-            broadcastRepo(name)
+            await db.setRepoPullFailed(name, true)
             return
         }
 
         log.info('cloned ' + name)
-        await db.setRepoFetchFailed(name, false)
+        await db.setRepoPullFailed(name, false)
         await db.setRepoCloned(name, true)
         broadcastRepo(name)
     }
@@ -184,7 +179,7 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
             await db.insertRepo(Object.assign(
                 {
                     cloned: false,
-                    fetchFailed: false,
+                    pullFailed: false,
                 },
                 repo,
             ))
@@ -205,58 +200,6 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
         await cloneRepo({
             url: repo.gitUrl,
             name: repo.name,
-        })
-    }
-
-    const pullRepo = async name => {
-        const onFetchStart = () => broadcastRepo(name)
-        log.info('pulling ' + name)
-
-        try {
-            await clones.pull(name, {onFetchStart})
-        } catch (error) {
-            log.error(error)
-
-            await db.setRepoFetchFailed(name, true)
-            broadcastRepo(name)
-            return
-        }
-
-        log.info('pulled ' + name)
-        await db.setRepoFetchFailed(name, false)
-        broadcastRepo(name)
-    }
-
-    // TODO: Write tests
-    const handlePullRepo = async msg => {
-        mustBeLoggedIn('pullRepoError')
-
-        let name
-        try {
-            name = repoSpec.pick('name')(msg).name
-        } catch (error) {
-            send('pullRepoError', {type: 'badRequest'})
-            return
-        }
-
-        const repo = await getRepo(name)
-        if (!repo) {
-            send('pullRepoError', {type: 'noSuchRepo'})
-            return
-        }
-
-        if (clones.isBeingFetched(name)) {
-            send('pullRepoError', {type: 'beingFetched'})
-        }
-
-        if (repo.cloned) {
-            await pullRepo(name)
-            return
-        }
-
-        await cloneRepo({
-            url: repo.gitUrl,
-            name,
         })
     }
 
@@ -334,7 +277,6 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
         handleFetchRepo,
         handleFetchRepos,
         handleDeleteRepo,
-        handlePullRepo,
         handleLogin,
         handleLogout,
         handleCreateRepo,
@@ -381,9 +323,21 @@ module.exports = ({wss, ws, req, db, clones, searches, log}) => {
     })
 
 
+
+    // This function is called when the `beingPulled` property
+    // of a repo has changed.
+    const clonesPullListener = ({repoName}) =>
+        broadcastRepo(repoName)
+
+    clones.on('pullStart', clonesPullListener)
+    clones.on('pullEnd', clonesPullListener)
+
     ws.on('close', () => {
         if (currentSearch) {
             currentSearch.kill()
         }
+
+        clones.removeListener('pullStart', clonesPullListener)
+        clones.removeListener('pullEnd', clonesPullListener)
     })
 }

@@ -72,7 +72,7 @@ html, body, #react-root, main {
             color: $gray !important;
         }
 
-        &--fetchFailed {
+        &--pullFailed {
             @include error;
         }
     }

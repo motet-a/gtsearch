@@ -22,8 +22,8 @@ export const NotFound = f(({name}) =>
 
 export const getRepoStatus = repo => [
     !repo.cloned && 'not cloned yet',
-    repo.beingFetched && 'being fetched',
-    repo.fetchFailed && 'last fetch failed',
+    repo.beingPulled && 'being pulled',
+    repo.pullFailed && 'last pull failed',
 ].filter(v => v).join(', ')
 
 class RepoInfoPageV extends React.Component {
@@ -35,11 +35,6 @@ class RepoInfoPageV extends React.Component {
     remove = () => {
         const {dispatch, repoName} = this.props
         return dispatch(actions.requestDeleteRepo(repoName))
-    }
-
-    pull = () => {
-        const {dispatch, repoName} = this.props
-        return dispatch(actions.requestPullRepo(repoName))
     }
 
     componentWillReceiveProps(nextProps) {
@@ -78,11 +73,6 @@ class RepoInfoPageV extends React.Component {
                     routeParams: {name: repo.name},
                 },
                 'search',
-            ),
-
-            loggedIn && !repo.beingFetched && Button(
-                {onClick: this.pull},
-                repo.cloned ? 'pull' : 'clone again',
             ),
 
             loggedIn && !deleteRepo.loading && Button(

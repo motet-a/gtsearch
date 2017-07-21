@@ -1,7 +1,7 @@
 
 const {assert} = require('chai')
 
-const {navigate, assertPath, login, browser} = require('./util')
+const {navigate, assertPath, login, browser, getPath} = require('./util')
 const fixtures = require('../test-fixtures')
 
 describe('repos', () => {
@@ -52,7 +52,19 @@ describe('repos', () => {
         browser()
             .waitUntil(
                 async () => !await statusExists(),
-                2 * 1000,
+                4 * 1000,
+            )
+
+    const currentPathEqual = async path =>
+        path === await getPath()
+
+    const waitUntilPageChanged = newPagePath =>
+        browser()
+            .waitUntil(
+                async () => await currentPathEqual(newPagePath),
+                10 * 1000,
+                'The client should navigate to ' + newPagePath,
+                100,
             )
 
     it('clones a repository', async () => {
@@ -85,37 +97,12 @@ describe('repos', () => {
             )
             .click('.CreateRepoPage .Button')
 
-            .pause(200)
-
-            .getUrl().then(
-                assertPath('/repository/mit/info')
-            )
-
+        await waitUntilPageChanged('/repository/mit/info')
+        const status = await getStatus()
         assert(
-            await getStatus() === 'status: not cloned yet, being fetched'
+            status === 'status: not cloned yet, being pulled' ||
+            status === 'status: not cloned yet'
         )
-
-        await waitWhileStatusIsVisible()
-    })
-
-    it('pulls an existing repository', async () => {
-        await login()
-            .click('a.RepoLink=upl')
-            .pause(200)
-            .getUrl().then(
-                assertPath('/repository/upl')
-            )
-            .click('a=upl')
-            .pause(200)
-            .getUrl().then(
-                assertPath('/repository/upl/info')
-            )
-            .click('.Button=pull')
-
-        assert(
-            await getStatus() === 'status: being fetched'
-        )
-
         await waitWhileStatusIsVisible()
     })
 

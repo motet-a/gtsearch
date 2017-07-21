@@ -5,7 +5,9 @@ module.exports = {
         gitUrl: 'https://github.com/jslicense/jslicense-upl-1.0.git',
         webUrl: '',
         cloned: false,
-        fetchFailed: false,
+        pullFailed: false,
+        pullDelay: null,
+        pulledAt: null,
     },
 
     mit: {
@@ -13,6 +15,8 @@ module.exports = {
         gitUrl: 'https://github.com/jslicense/jslicense-mit.git',
         webUrl: '',
         cloned: false,
-        fetchFailed: false,
+        pullFailed: false,
+        pullDelay: null,
+        pulledAt: null,
     },
 }

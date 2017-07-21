@@ -7,6 +7,7 @@ const Client = require('./ws-test-client')
 const createTestServer = require('./create-test-server')
 const serve = require('./serve')
 const fixtures = require('./test-fixtures')
+const {repoEqual, wait} = require('./util')
 
 describe('ws', () => {
     let serverConfig
@@ -19,7 +20,9 @@ describe('ws', () => {
     const createClient = () =>
         new Client('ws://' + serverConfig.address + ':' + serverConfig.port)
 
-    before(async () => {
+    before(async function () {
+        this.timeout(5 * 1000)
+
         assert(!serverConfig)
         serverConfig = await createTestServer()
         db = serverConfig.db
@@ -46,7 +49,7 @@ describe('ws', () => {
             plaintextPassword: adminPassword,
         })
 
-        assert.deepEqual(
+        assert.deepStrictEqual(
             await admin.receive(),
             {type: 'login'},
         )
@@ -65,7 +68,7 @@ describe('ws', () => {
     it('sends `hello` on connection', async () => {
         const client = createClient()
 
-        assert.deepEqual(
+        assert.deepStrictEqual(
             await client.receive(),
             {type: 'hello'},
         )
@@ -79,7 +82,7 @@ describe('ws', () => {
         it('fails if the request is invalid', async () => {
             user.send({type: 'login'})
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'loginError',
@@ -98,7 +101,7 @@ describe('ws', () => {
                 plaintextPassword: 'badPassword',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'loginError',
@@ -116,7 +119,7 @@ describe('ws', () => {
                 plaintextPassword: adminPassword,
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {type: 'login'},
             )
@@ -136,7 +139,7 @@ describe('ws', () => {
         it('fails if the user is not logged in', async () => {
             user.send({type: 'createRepo'})
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'createRepoError',
@@ -153,7 +156,7 @@ describe('ws', () => {
                 webUrl: '',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await admin.receive(),
                 {
                     type: 'createRepoError',
@@ -170,7 +173,7 @@ describe('ws', () => {
                 webUrl: '',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await admin.receive(),
                 {
                     type: 'createRepoError',
@@ -188,7 +191,7 @@ describe('ws', () => {
                 fixtures.upl,
             ))
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await admin.receive(),
                 {
                     type: 'createRepoError',
@@ -208,7 +211,7 @@ describe('ws', () => {
                 webUrl: '',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await admin.receive(),
                 {
                     type: 'createRepo',
@@ -216,35 +219,41 @@ describe('ws', () => {
                 },
             )
 
-            const beingCloned = {
-                type: 'repo',
-                body: Object.assign(
-                    {beingFetched: true},
-                    fixtures.mit,
-                ),
-            }
+            while (true) {
+                const msg = await admin.receive()
+                assert(msg.type === 'repo')
 
-            assert.deepEqual(
-                await admin.receive(),
-                beingCloned,
-            )
-
-            assert.deepEqual(
-                await user.receive(),
-                beingCloned,
-            )
-
-            assert.deepEqual(
-                await user.receive(),
-                {
-                    type: 'repo',
-                    body: Object.assign(
-                        {},
+                if (!msg.body.cloned) {
+                    const expected = Object.assign(
+                        {
+                            beingPulled: msg.body.beingPulled,
+                        },
                         fixtures.mit,
-                        {cloned: true, beingFetched: false},
-                    ),
-                },
-            )
+                    )
+
+                    repoEqual(
+                        msg.body,
+                        expected,
+                    )
+                } else {
+                    repoEqual(
+                        msg.body,
+                        Object.assign(
+                            {},
+                            fixtures.mit,
+                            {
+                                cloned: true,
+                                beingPulled: false,
+                                pulledAt: 123456,
+                            },
+                        )
+                    )
+
+                    await wait(100)
+
+                    return
+                }
+            }
         }).timeout(10 * 1000)
     })
 
@@ -255,7 +264,7 @@ describe('ws', () => {
                 name: 'unknown',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'repoError',
@@ -273,12 +282,12 @@ describe('ws', () => {
                 name: fixtures.upl.name,
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'repo',
                     body: Object.assign(
-                        {beingFetched: false},
+                        {beingPulled: false},
                         fixtures.upl,
                     ),
                 },
@@ -292,13 +301,13 @@ describe('ws', () => {
                 type: 'fetchRepos',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'repos',
                     body: [
                         Object.assign(
-                            {beingFetched: false},
+                            {beingPulled: false},
                             fixtures.upl,
                         )
                     ],
@@ -311,7 +320,7 @@ describe('ws', () => {
         it('fails if the user is not logged in', async () => {
             user.send({type: 'deleteRepo'})
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'deleteRepoError',
@@ -323,7 +332,7 @@ describe('ws', () => {
         it('works', async () => {
             admin.send({type: 'deleteRepo', name: 'upl'})
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await admin.receive(),
                 {
                     type: 'deleteRepo',
@@ -331,7 +340,7 @@ describe('ws', () => {
                 },
             )
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'deleteRepo',
@@ -343,7 +352,7 @@ describe('ws', () => {
                 type: 'fetchRepos',
             })
 
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 await user.receive(),
                 {
                     type: 'repos',

@@ -71,7 +71,58 @@ const getMigrations = db => [
                     hashedPassword TEXT NOT NULL
                 );`
             )
-        }
+        },
+    },
+
+    {
+        name: '2-pull-repos-automatically',
+        async up() {
+            await db.exec(
+                `ALTER TABLE repos
+                ADD COLUMN fetchDelay INTEGER;`
+            )
+
+            await db.exec(
+                `ALTER TABLE repos
+                ADD COLUMN fetchedAt INTEGER;`
+            )
+        },
+    },
+
+    {
+        name: '3-rename-fetch-to-pull-in-the-repos-table',
+        async up() {
+            await db.exec(
+                `ALTER TABLE repos
+                RENAME TO repos_old;`
+            )
+
+            await db.exec(
+                `CREATE TABLE repos (
+                    name TEXT NOT NULL PRIMARY KEY,
+                    webUrl TEXT NOT NULL,
+                    gitUrl TEXT NOT NULL,
+                    cloned INTEGER NOT NULL,
+                    pullFailed INTEGER NOT NULL,
+                    pullDelay INTEGER,
+                    pulledAt INTEGER
+                );`
+            )
+
+            await db.exec(
+                `INSERT INTO repos(
+                    name, webUrl, gitUrl, cloned, pullFailed,
+                    pullDelay, pulledAt
+                )
+                SELECT name, webUrl, gitUrl, cloned, fetchFailed,
+                    fetchDelay, fetchedAt
+                FROM repos_old;`
+            )
+
+            await db.exec(
+                `DROP TABLE repos_old;`
+            )
+        },
     },
 ]
 

@@ -29,7 +29,7 @@ describe('clones', () => {
         await clones.remove('r')
         assert(!await clones.exists('r'))
         assert(!await fileExists(path.join(basePath, 'r', 'package.json')))
-    }).timeout(10 * 1000)
+    }).timeout(20 * 1000)
 
     it('fails with a nonexistent repo', async () => {
         try {
@@ -41,5 +41,5 @@ describe('clones', () => {
             return
         }
         assert(false)
-    }).timeout(10 * 1000)
+    }).timeout(20 * 1000)
 })

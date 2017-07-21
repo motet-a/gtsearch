@@ -1,4 +1,6 @@
 
+// TODO: Consider using https://github.com/kriasoft/node-sqlite.
+
 const {promisify} = require('util')
 const sqlite3 = require('sqlite3')
 
@@ -51,6 +53,8 @@ const promisifyDb = db => {
 
 module.exports = async (...args) => {
     const db = await new Promise((resolve, reject) => {
+        // The people at sqlite3 decided to use a callback in a
+        // constructor... It looks terribly messy :-p
         const db = new sqlite3.Database(...args, err => {
             if (err) {
                 reject(err)

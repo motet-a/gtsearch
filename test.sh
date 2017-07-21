@@ -7,5 +7,5 @@ dc build
 alias exec="dc run --rm server"
 
 dc up -d
-dc exec server yarn run test
+dc exec server yarn run test || dc down
 dc down

@@ -3,6 +3,7 @@ const createSearches = require('./searches')
 const {dummyLogger} = require('./log')
 const createDb = require('./db')
 const createClones = require('./clones')
+const createPullCron = require('./pull-cron')
 const serve = require('./serve')
 
 module.exports = async () => {
@@ -16,9 +17,10 @@ module.exports = async () => {
     const clones = createClones('test-clones')
     const searches = createSearches()
     const log = dummyLogger
+    const pullCron = createPullCron({db, clones, log})
 
     const server = await serve({
-        db, clones, searches, log,
+        db, clones, searches, log, pullCron,
         address, port,
     })
 

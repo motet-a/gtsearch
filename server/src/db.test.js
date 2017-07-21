@@ -2,6 +2,7 @@
 const {assert} = require('chai')
 
 const createDb = require('./db')
+const {repoEqual, repoListEqual} = require('./util')
 const {isDbError} = createDb
 
 const assertDbError = expectedErrorCode => error => {
@@ -24,7 +25,9 @@ const linuxRepo = {
     gitUrl: 'https://github.com/torvalds/linux.git',
     webUrl: '',
     cloned: false,
-    fetchFailed: false,
+    pullDelay: null,
+    pullFailed: false,
+    pulledAt: null,
 }
 
 const freebsdRepo = {
@@ -32,13 +35,18 @@ const freebsdRepo = {
     gitUrl: 'https://github.com/freebsd/freebsd.git',
     webUrl: '',
     cloned: false,
-    fetchFailed: false,
+    pullDelay: null,
+    pullFailed: false,
+    pulledAt: null,
 }
 
 describe('db', () => {
     let db
 
-    beforeEach(async () => {
+    // TODO: Avoid applying every migration before each test, it's too slow
+    beforeEach(async function () {
+        this.timeout(5 * 1000)
+
         db = await createDb('test', {dropTables: true})
         await db.setupAdmin()
     })
@@ -47,7 +55,7 @@ describe('db', () => {
     })
 
     it('creates tables', async () => {
-        assert.deepEqual(
+        assert.deepStrictEqual(
             await db._db.getTableNames(),
             ['admin', 'migrations', 'repos']
         )
@@ -56,7 +64,7 @@ describe('db', () => {
     it('inserts repo', async () => {
         await db.insertRepo(linuxRepo)
 
-        assert.deepEqual(
+        repoEqual(
             await db.getRepo('linux'),
             linuxRepo
         )
@@ -72,51 +80,68 @@ describe('db', () => {
 
         await db.insertRepo(linuxRepo)
 
-        assert.deepEqual(
+        repoEqual(
             await db.getRepo('linux'),
             linuxRepo
         )
     })
 
     it('gets repos', async () => {
-        assert.deepEqual(await db.getRepos(), [])
+        repoListEqual(
+            await db.getRepos(),
+            []
+        )
 
         await db.insertRepo(freebsdRepo)
 
-        assert.deepEqual(await db.getRepos(), [
-            freebsdRepo,
-        ])
+        repoListEqual(
+            await db.getRepos(),
+            [freebsdRepo]
+        )
 
         await db.insertRepo(linuxRepo)
 
-        assert.deepEqual(await db.getRepos(), [
-            freebsdRepo,
-            linuxRepo,
-        ])
+        repoListEqual(
+            await db.getRepos(),
+            [freebsdRepo, linuxRepo]
+        )
     })
 
-    it('sets the fetchFailed field of a repo', async () => {
+    it('sets the pullFailed field of a repo', async () => {
         // Must not throw
-        await db.setRepoFetchFailed('nonExistent', true)
+        await db.setRepoPullFailed('nonExistent', true)
 
         await db.insertRepo(linuxRepo)
 
-        await db.setRepoFetchFailed('linux', true)
+        await db.setRepoPullFailed('linux', true)
 
-        assert.deepEqual(
+        let actualLinux = await db.getRepo('linux')
+        assert(actualLinux.pulledAt &&
+               typeof actualLinux.pulledAt === 'number')
+
+        repoEqual(
             await db.getRepo('linux'),
             Object.assign(
                 {},
                 linuxRepo,
-                {fetchFailed: true}
+                {
+                    pullFailed: true,
+                    pulledAt: 12345678,
+                }
             )
         )
 
-        await db.setRepoFetchFailed('linux', false)
+        await db.setRepoPullFailed('linux', false)
 
-        assert.deepEqual(
+        repoEqual(
             await db.getRepo('linux'),
-            linuxRepo
+            Object.assign(
+                {},
+                linuxRepo,
+                {
+                    pulledAt: 12345678,
+                }
+            )
         )
     })
 
@@ -128,20 +153,29 @@ describe('db', () => {
 
         await db.setRepoCloned('linux', true)
 
-        assert.deepEqual(
+        repoEqual(
             await db.getRepo('linux'),
             Object.assign(
                 {},
                 linuxRepo,
-                {cloned: true}
+                {
+                    cloned: true,
+                    pulledAt: 12345678,
+                }
             )
         )
 
         await db.setRepoCloned('linux', false)
 
-        assert.deepEqual(
+        repoEqual(
             await db.getRepo('linux'),
-            linuxRepo
+            Object.assign(
+                {},
+                linuxRepo,
+                {
+                    pulledAt: 12345678,
+                }
+            )
         )
     })
 
@@ -156,7 +190,7 @@ describe('db', () => {
 
     it('gets admin', async () => {
         const admin = await db.getAdmin()
-        assert.deepEqual(Object.keys(admin), ['hashedPassword'])
+        assert.deepStrictEqual(Object.keys(admin), ['hashedPassword'])
     })
 
     it('checks admin passwords', async () => {

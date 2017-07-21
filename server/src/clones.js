@@ -1,5 +1,6 @@
 // Functions to manage cloned Git repositories
 
+const EventEmitter = require('events')
 const assert = require('assert')
 const {promisify} = require('util')
 const fs = require('fs')
@@ -57,14 +58,37 @@ const execGit = async (args, options) => {
     }
 }
 
-class Clones {
+// Events:
+//   - `pullStart` is emitted at the moment when a repo begins to
+//     be pulled (or cloned)
+//
+//   - `pullEnd` is emitted at the moment when a pull (or clone)
+//     ends (successfully or not).
+//
+// Given a repository A, `pullEnd` and `pullStart` are emitted just
+// after the return value of `clones.isBeingPulled(A)` has changed.
+class Clones extends EventEmitter {
     constructor(baseDirName) {
+        super()
+
         this._basePath = path.join(__dirname, '..', 'var', baseDirName)
-        this._beingFetched = new Set()
+        this._beingPulled = new Set()
     }
 
-    isBeingFetched(name) {
-        return this._beingFetched.has(name)
+    isBeingPulled(name) {
+        return this._beingPulled.has(name)
+    }
+
+    _emitPullStart(name) {
+        assert(!this.isBeingPulled(name))
+        this._beingPulled.add(name)
+        this.emit('pullStart', {repoName: name})
+    }
+
+    _emitPullEnd(name) {
+        assert(this.isBeingPulled(name))
+        this._beingPulled.delete(name)
+        this.emit('pullEnd', {repoName: name})
     }
 
     path(name) {
@@ -87,16 +111,11 @@ class Clones {
         return stdout.trim()
     }
 
-    // `onFetchStart` is called just after
-    // `clones.isBeingFetched(name)` becomes `true`
-    async clone(url, name, options = {}) {
-        const onFetchStart = options.onFetchStart || (() => {})
-
-        assert(!this.isBeingFetched(name))
+    async clone(url, name, options) {
+        assert(!options, 'deprecated')
 
         try {
-            this._beingFetched.add(name)
-            onFetchStart()
+            this._emitPullStart(name)
 
             await this.remove(name)
 
@@ -116,18 +135,17 @@ class Clones {
                 {timeout: 60 * 1000},
             )
         } finally {
-            this._beingFetched.delete(name)
+            this._emitPullEnd(name)
         }
     }
 
-    async pull(name, options = {}) {
-        const onFetchStart = options.onFetchStart || (() => {})
+    async pull(name, options) {
+        assert(!options, 'deprecated')
 
         const dir = this.path(name)
 
         try {
-            this._beingFetched.add(name)
-            onFetchStart()
+            this._emitPullStart(name)
 
             const branch = await this._getCurrentBranch(name)
 
@@ -155,7 +173,7 @@ class Clones {
                 ]
             )
         } finally {
-            this._beingFetched.delete(name)
+            this._emitPullEnd(name)
         }
     }
 

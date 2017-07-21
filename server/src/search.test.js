@@ -70,7 +70,7 @@ describe('Search', () => {
 
         const afterExit = () => {
             assert(onExit.calledOnce)
-            assert.deepEqual(
+            assert.deepStrictEqual(
                 onExit.args[0][0],
                 {
                     code: 0,

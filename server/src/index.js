@@ -3,14 +3,17 @@ const {ensureVarDirExists} = require('./util')
 const createDb = require('./db')
 const createClones = require('./clones')
 const createSearches = require('./searches')
+const createPullCron = require('./pull-cron')
 const serve = require('./serve')
 
 const main = async () => {
     await ensureVarDirExists()
 
+    const log = require('./log').consoleLogger
     const db = await createDb('gtsearch')
     const clones = createClones('clones')
     const searches = createSearches()
+    const pullCron = createPullCron({db, clones, log})
 
     const adminPassword = await db.setupAdmin()
     if (adminPassword) {
@@ -19,7 +22,11 @@ const main = async () => {
 
     const address = process.env.GTSEARCH_ADDRESS || 'localhost'
     const port = ~~process.env.GTSEARCH_PORT || 8080
-    const server = await serve({db, clones, searches, address, port})
+    const server = await serve({
+        db, clones, searches, address, port, pullCron, log,
+    })
+
+    pullCron.tick()
 
     const stop = () => {
         console.log('\nstopping server')

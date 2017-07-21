@@ -1,4 +1,5 @@
 
+const assert = require('assert')
 const path = require('path')
 const fs = require('fs')
 const url = require('url')
@@ -64,8 +65,37 @@ const ensureVarDirExists = async () => {
 
 const exec = util.promisify(child_process.execFile)
 
+const repoEqual = (a, b) => {
+    a = Object.assign({}, a)
+    b = Object.assign({}, b)
+
+    assert(
+        (a.pulledAt && b.pulledAt) ||
+        (!a.pulledAt && !b.pulledAt),
+        '`pulledAt` properties do not match: ' +
+        JSON.stringify(a) + ' ' + JSON.stringify(b)
+    )
+
+    delete a.pulledAt
+    delete b.pulledAt
+
+    assert.deepStrictEqual(a, b)
+}
+
+const repoListEqual = (a, b) => {
+    assert(a.length === b.length)
+    for (let i = 0; i < a.length; i++) {
+        repoEqual(a[i], b[i])
+    }
+}
+
+const wait = milliseconds =>
+    new Promise(resolve => setTimeout(resolve, milliseconds))
+
 module.exports = {
     randomString, ipAddress, isValidGitUrl,
     fileExists, mkdirQuiet, ensureVarDirExists,
-    exec
+    exec,
+    repoEqual, repoListEqual,
+    wait,
 }

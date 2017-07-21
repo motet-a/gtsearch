@@ -6,7 +6,7 @@ const {promisify} = require('util')
 
 const migrate = require('./migrate')
 const {randomString} = require('./util')
-const sqlite = require('./sqlite-promise')
+const createSqliteDriver = require('./sqlite-promise')
 
 const V = require('@motet_a/validate')
 
@@ -17,14 +17,19 @@ const repoSpec = V.shape({
     webUrl: V.string.max(256),
     gitUrl: V.string.min(1).max(256),
     cloned: V.boolean,
-    fetchFailed: V.boolean,
+    pullFailed: V.boolean,
 })
 
-const repoFromSQLite = dbRepo =>
-    dbRepo && Object.assign({}, dbRepo, {
+const repoFromSQLite = dbRepo => {
+    if (!dbRepo) {
+        return
+    }
+
+    return Object.assign({}, dbRepo, {
         cloned: !!dbRepo.cloned,
-        fetchFailed: !!dbRepo.fetchFailed,
+        pullFailed: !!dbRepo.pullFailed,
     })
+}
 
 const errors = {
     ALREADY_EXISTS: 'ALREADY_EXISTS',
@@ -42,6 +47,9 @@ const newDbError = code => {
 
 const isDbError = error =>
     error && error[dbErrorSymbol] === dbErrorSymbol
+
+const nowTimestamp = () =>
+    new Date().getTime()
 
 class Db {
     constructor(db) {
@@ -63,6 +71,20 @@ class Db {
         return repos.map(repoFromSQLite)
     }
 
+    async getRepoNamesToPull(defaultPullDelay) {
+        const repos = await this._db.all(
+            `SELECT name, pulledAt, cloned, pullDelay
+            FROM repos
+            WHERE cloned AND (
+                coalesce(pulledAt, 0) + coalesce(pullDelay, ?)
+            ) < ?;`,
+            defaultPullDelay,
+            nowTimestamp()
+        )
+
+        return repos.map(r => r.name)
+    }
+
     async getRepo(name) {
         const repo = await this._db.get(
             `SELECT *
@@ -80,13 +102,13 @@ class Db {
         try {
             return await this._db.run(
                 `INSERT INTO repos (
-                    name, webUrl, gitUrl, cloned, fetchFailed
+                    name, webUrl, gitUrl, cloned, pullFailed
                 ) VALUES (?, ?, ?, ?, ?);`,
                 repo.name,
                 repo.webUrl,
                 repo.gitUrl,
                 repo.cloned,
-                repo.fetchFailed
+                repo.pullFailed
             )
         } catch (error) {
             if (error.code === 'SQLITE_CONSTRAINT' &&
@@ -99,12 +121,13 @@ class Db {
     }
 
     // Returns a Promise
-    setRepoFetchFailed(name, fetchFailed) {
+    setRepoPullFailed(name, pullFailed) {
         return this._db.run(
             `UPDATE repos
-            SET fetchFailed = ?
+            SET pullFailed = ?, pulledAt = ?
             WHERE name = ?;`,
-            fetchFailed,
+            pullFailed,
+            nowTimestamp(),
             name
         )
     }
@@ -113,9 +136,10 @@ class Db {
     setRepoCloned(name, cloned) {
         return this._db.run(
             `UPDATE repos
-            SET cloned = ?
+            SET cloned = ?, pulledAt = ?
             WHERE name = ?;`,
             cloned,
+            nowTimestamp(),
             name
         )
     }
@@ -206,12 +230,12 @@ const createDb = async (fileName, options = {}) => {
         __dirname, '..', 'var', fileName + '.sqlitedb'
     )
 
-    const rawDB = await sqlite(filePath)
+    const sqliteDriver = await createSqliteDriver(filePath)
     if (dropTables) {
-        await rawDB.dropTables()
+        await sqliteDriver.dropTables()
     }
-    await migrate(rawDB)
-    const db = new Db(rawDB)
+    await migrate(sqliteDriver)
+    const db = new Db(sqliteDriver)
     return db
 }
 

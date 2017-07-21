@@ -26,12 +26,18 @@ const login = () =>
         .pause(200)
         .getUrl(assertPath('/'))
 
+const getPath = async () =>
+    getPathFromUrl(
+        await browser.getUrl()
+    )
+
 module.exports = {
     browser: () => browser,
     navigate,
     setBrowser: b => browser = b,
     setServerConfig: config => serverConfig = config,
 
+    getPath,
     getPathFromUrl,
     assertPath,
     login,

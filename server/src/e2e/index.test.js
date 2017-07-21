@@ -29,7 +29,7 @@ describe('e2e', function () {
             type: 'login',
             plaintextPassword: serverConfig.adminPassword,
         })
-        assert.deepEqual(
+        assert.deepStrictEqual(
             await admin.receive(),
             {type: 'login'},
         )
@@ -41,7 +41,7 @@ describe('e2e', function () {
             webUrl: '',
         })
 
-        assert.deepEqual(
+        assert.deepStrictEqual(
             await admin.receive(),
             {
                 type: 'createRepo',
