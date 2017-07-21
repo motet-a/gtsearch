@@ -37,6 +37,16 @@ const repos = (state = Object.create(null), action) => {
     return state
 }
 
+const receivingRepos = (state = false, action) => {
+    switch (action.type) {
+        case 'wsRequestRepos':
+            return true
+        case 'wsReceiveRepos':
+            return false
+    }
+    return state
+}
+
 const search = (state = null, action) => {
     switch (action.type) {
         case 'wsRequestSearch':
@@ -147,6 +157,7 @@ const ws = (state = {connected: false}, action) => {
 
 export default combineReducers({
     repos,
+    receivingRepos,
     search,
     admin,
     createRepo,

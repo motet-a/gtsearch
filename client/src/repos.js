@@ -15,7 +15,7 @@ const RepoLink = f(({repo}) =>
     Link(
         {
             className: classnames(
-                'RepoLink',
+                'RepoLink Button Button--subtle',
                 !repo.cloned && 'RepoLink--notCloned',
                 repo.pullFailed && 'RepoLink--pullFailed',
             ),
@@ -35,13 +35,37 @@ const sort = (list, compareFunc) => {
     return list
 }
 
+const AdminPassword = f(() =>
+    f.abbr(
+        {
+            title: 'look at the logs, it is written on stdout',
+        },
+        'administration password',
+    )
+)
+
+const NoRepos = f(({loggedIn}) =>
+    div(
+        {className: 'NoRepos'},
+
+        !loggedIn && f.p('there is no repository yet.'),
+
+        loggedIn ? f.p(
+            '↓ use your superpowers ↓'
+        ) : f.p(
+            'but if you know the ', AdminPassword(),
+            ', you can use your superpowers.',
+        ),
+    )
+)
+
 class ReposPageV extends React.Component {
     componentWillMount() {
         return this.props.dispatch(actions.requestRepos())
     }
 
     render() {
-        const {repos, loggedIn} = this.props
+        const {repos, loggedIn, receivingRepos} = this.props
 
         const clonedRepos = Object
             .values(repos)
@@ -60,6 +84,11 @@ class ReposPageV extends React.Component {
         const sortAndRender = repoList =>
             sortByName(repoList).map(renderRepo)
 
+        const noRepos =
+            !receivingRepos &&
+            !clonedRepos.length &&
+            !notClonedRepos.length
+
         return div(
             {className: 'ReposPage'},
 
@@ -67,6 +96,8 @@ class ReposPageV extends React.Component {
 
             sortAndRender(clonedRepos),
             sortAndRender(notClonedRepos),
+
+            noRepos && NoRepos({loggedIn}),
 
             loggedIn && Link(
                 {routeName: 'createRepository'},
@@ -80,6 +111,7 @@ const mapStateToProps = state => {
     return {
         loggedIn: state.admin.loggedIn,
         repos: state.repos,
+        receivingRepos: state.receivingRepos,
     }
 }
 

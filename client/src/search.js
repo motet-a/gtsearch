@@ -187,12 +187,15 @@ class SearchPageV extends React.Component {
                 repo.name,
             )),
 
-            input({
-                type: 'text',
-                placeholder: 'query',
-                onChange: this.onInputChange,
-                autoFocus: true,
-            }),
+            div(
+                {className: 'SearchPage__inputWrapper'},
+                input({
+                    type: 'text',
+                    placeholder: 'query',
+                    onChange: this.onInputChange,
+                    autoFocus: true,
+                }),
+            ),
 
             ResultList({
                 results: this.results,

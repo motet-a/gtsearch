@@ -7,7 +7,11 @@ const {div} = f
 const Button = f(props =>
     div({
         ...props,
-        className: classnames('Button', props.className),
+        className: classnames(
+            'Button',
+            props.className,
+            props.subtle && 'Button--subtle',
+        ),
     }),
 )
 

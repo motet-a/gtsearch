@@ -9,7 +9,10 @@ const {header, div} = f
 const HeaderV = ({loggedIn}) =>
     header(
         Link(
-            {routeName: 'root'},
+            {
+                routeName: 'root',
+                className: 'Button Button--subtle',
+            },
             'gtsearch',
         ),
 

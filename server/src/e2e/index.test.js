@@ -123,7 +123,7 @@ describe('e2e', function () {
                 assertPath('/login')
             )
 
-            .click('footer a:nth-child(1)') // `about` link
+            .click('footer a:nth-child(1)') // `github` link
 
             .getUrl().then(
                 url => assert(url === 'https://github.com/motet-a/gtsearch')
