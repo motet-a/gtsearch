@@ -148,7 +148,10 @@ a.Button {
 
         display: flex;
         font-family: monospace;
-        text-decoration-color: $gray !important;
+        &:hover {
+            background: $light-gray;
+            text-decoration: none;
+        }
 
         .file, .line {
             flex-shrink: 0;
