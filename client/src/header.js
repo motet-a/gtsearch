@@ -16,10 +16,12 @@ const HeaderV = ({loggedIn}) =>
             'gtsearch',
         ),
 
+        div({className: 'Header--filler'}),
+
         loggedIn && Link(
             {
                 routeName: 'logout',
-                className: 'logout',
+                className: 'logout Button Button--subtle',
             },
             'logout',
         ),

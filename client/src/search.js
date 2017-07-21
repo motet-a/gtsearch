@@ -165,6 +165,25 @@ class SearchPageV extends React.Component {
         return search.loading + results.length + search.query
     }
 
+    onKeyDown = event => {
+        const KeysToTransfer = [
+            'PageDown', 'PageUp',
+        ]
+
+        const mustBeTransferred =
+            KeysToTransfer.indexOf(event.key) !== -1
+
+        if (mustBeTransferred) {
+            // The whole page must scroll. Transfer the event to
+            // the root element.
+            const {nativeEvent} = event
+            const newEvent = new nativeEvent.constructor(
+                nativeEvent.type, nativeEvent,
+            )
+            document.dispatchEvent(newEvent)
+        }
+    }
+
     render() {
         const {repo, repoName, search} = this.props
 
@@ -193,6 +212,7 @@ class SearchPageV extends React.Component {
                     type: 'text',
                     placeholder: 'query',
                     onChange: this.onInputChange,
+                    onKeyDown: this.onKeyDown,
                     autoFocus: true,
                 }),
             ),
