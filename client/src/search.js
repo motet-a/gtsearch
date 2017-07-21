@@ -46,13 +46,23 @@ const MatchingLine = ({line, query}) =>
         mapMatches(line, query, (s, i) => strong({key: i}, s)),
     )
 
-const Result = f(({result, query}) =>
+// navigate: A function called with 'up' or 'down' when ArrowUp or
+// ArrowDown is pressed while the result link is focused.
+const Result = f(({result, query, navigate}) =>
     a(
         {
             className: 'Result',
             href: result.href,
             target: '_blank',
             rel: 'noopener noreferrer',
+            onKeyDown(event) {
+                if (event.key === 'ArrowUp') {
+                    navigate(event, 'up')
+                }
+                if (event.key === 'ArrowDown') {
+                    navigate(event, 'down')
+                }
+            },
         },
 
         span(
@@ -77,21 +87,74 @@ const Result = f(({result, query}) =>
     ),
 )
 
-const ResultList = f(({results, resultHash, query, loadMore}) =>
-    div(
-        {className: 'ResultList'},
-        results.map((r, i) => Result({
-            key: i,
-            result: r,
+class ResultListV extends React.Component {
+    ref = null
+
+    getResultDomElementByIndex(index) {
+        const {results} = this.props
+
+        if (!this.ref || !results[index]) {
+            return null
+        }
+
+        const {children} = this.ref
+        return children[index]
+    }
+
+    // Return true if an element has been focused.
+    focusResultByIndex(index) {
+        const e = this.getResultDomElementByIndex(index)
+        if (e) {
+            e.focus()
+            return true
+        }
+    }
+
+    onResultNavigation = (event, resultIndex, direction) => {
+        event.preventDefault()
+
+        if (resultIndex === 0 && direction === 'up') {
+            this.props.focusTextInput()
+        }
+
+        const inc = direction === 'up' ? -1 : 1
+        this.focusResultByIndex(resultIndex + inc)
+    }
+
+    renderResult = (result, index) => {
+        const {query} = this.props
+
+        return Result({
+            key: index,
+            result,
             query,
-        })).concat(
-            f(Waypoint)({
-                key: 'waypoint' + resultHash,
-                onEnter: loadMore,
-            }),
+            navigate: (event, direction) => {
+                this.onResultNavigation(event, index, direction)
+            },
+        })
+    }
+
+    render() {
+        const {results, resultHash, loadMore} = this.props
+
+        const resultElements = results.map(this.renderResult)
+
+        const waypoint = f(Waypoint)({
+            key: 'waypoint' + resultHash,
+            onEnter: loadMore,
+        })
+
+        return div(
+            {
+                className: 'ResultList',
+                ref: e => this.ref = e,
+            },
+            resultElements.concat([waypoint])
         )
-    ),
-)
+    }
+}
+
+const ResultList = f(ResultListV)
 
 class SearchPageV extends React.Component {
     componentWillMount() {
@@ -184,6 +247,12 @@ class SearchPageV extends React.Component {
         }
     }
 
+    focusTextInput = () => {
+        if (this.inputRef) {
+            this.inputRef.focus()
+        }
+    }
+
     render() {
         const {repo, repoName, search} = this.props
 
@@ -214,6 +283,7 @@ class SearchPageV extends React.Component {
                     onChange: this.onInputChange,
                     onKeyDown: this.onKeyDown,
                     autoFocus: true,
+                    ref: input => this.inputRef = input,
                 }),
             ),
 
@@ -222,6 +292,7 @@ class SearchPageV extends React.Component {
                 resultHash: this.resultHash,
                 query: search ? search.query : '',
                 loadMore: this.loadMore,
+                focusTextInput: this.focusTextInput,
             }),
 
             span(
