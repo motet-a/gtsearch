@@ -16,7 +16,7 @@ input[type="password"] {
     font-size: 1rem;
     font-family: inherit;
     font-weight: inherit;
-    border: solid 0.1rem $light-gray;
+    border: solid 0.1rem #eee;
 
     &::placeholder {
         color: $gray;

@@ -12,7 +12,7 @@ export default [
 
     {
         name: 'repositorySearch',
-        path: '/repository/:name',
+        path: '/repository/:name?q',
     },
 
     {

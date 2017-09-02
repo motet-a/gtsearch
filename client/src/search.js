@@ -159,11 +159,27 @@ const ResultList = f(ResultListV)
 class SearchPageV extends React.Component {
     componentWillMount() {
         const {dispatch, repoName} = this.props
-        return dispatch(actions.requestRepo(repoName))
+        dispatch({type: 'clearSearch'})
+        dispatch(actions.requestRepo(repoName))
+    }
+
+    componentDidUpdate() {
+        const {search, repo, queryParams} = this.props
+        if (!search && repo && queryParams.q) {
+            this.inputRef.value = queryParams.q
+            this.search(queryParams.q)
+        }
     }
 
     search = throttle(query => {
-        const {dispatch, repoName} = this.props
+        const {dispatch, repoName, router} = this.props
+
+        // Update the `q` query parameter in the URL
+        router.navigate('repositorySearch', {
+            q: query,
+            name: repoName,
+        })
+
         return dispatch(actions.requestSearch({repoName, query}))
     }, 200)
 
@@ -305,8 +321,8 @@ class SearchPageV extends React.Component {
     }
 }
 
-const mapStateToProps = (state, {route}) => {
-    const {name} = route.params
+const mapStateToProps = (state, {route, router}) => {
+    const {name, ...queryParams} = route.params
     const repo = state.repos[name]
     const search = (state.search && state.search.repo === name) ?
                    state.search : null
@@ -315,6 +331,8 @@ const mapStateToProps = (state, {route}) => {
         repoName: name,
         repo,
         search,
+        queryParams,
+        router,
     }
 }
 
