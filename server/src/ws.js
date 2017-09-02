@@ -89,7 +89,8 @@ module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
     // Sends a repo to every client.
     // Useful after a creation or an update.
     const broadcastRepo = name =>
-        broadcastRepoAsync(name).catch(err => log.error(err))
+        broadcastRepoAsync(name)
+            .catch(err => log.error('broadcastRepo error:', err))
 
     const handleDeleteRepo = async msg => {
         mustBeLoggedIn('deleteRepoError')
@@ -98,7 +99,7 @@ module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
         await db.deleteRepo(name)
         await clones.remove(name)
 
-        log.info('deleted ' + name)
+        log.info('deleted repo ' + name)
         broadcast('deleteRepo', name)
     }
 
@@ -142,15 +143,20 @@ module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
         try {
             await clones.clone(url, name)
         } catch (error) {
-            log.error(error)
+            log.error('cloneRepo error:', error)
 
             await db.setRepoPullFailed(name, true)
             return
         }
 
         log.info('cloned ' + name)
+
+        const branch = await clones.getCurrentBranch(name)
+
         await db.setRepoPullFailed(name, false)
         await db.setRepoCloned(name, true)
+        await db.setRepoBranch(name, branch)
+
         broadcastRepo(name)
     }
 
@@ -251,7 +257,7 @@ module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
         })
 
         search.on('stderr', error => {
-            log.error('search error: ' + error)
+            log.error('search error:', error)
         })
 
         search.on('exit', reason => {
@@ -319,7 +325,9 @@ module.exports = ({wss, ws, req, db, clones, searches, pullCron, log}) => {
         }
 
         handleMessage(msg)
-            .catch(error => log.error(error))
+            .catch(error => {
+                log.error('message handler error:', error)
+            })
     })
 
 

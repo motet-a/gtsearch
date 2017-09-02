@@ -191,6 +191,8 @@ class SearchPageV extends React.Component {
             return []
         }
 
+        const branch = repo.branch || 'master'
+
         const results = search.previousResults || search.results || []
         const gitHubName = getGitHubRepoName(repo.gitUrl)
         if (!gitHubName) {
@@ -200,7 +202,7 @@ class SearchPageV extends React.Component {
         results.forEach(result => {
             result.href = 'https://github.com/' +
                           gitHubName +
-                          '/blob/master/' +
+                          '/blob/' + branch + '/' +
                           result.filePath +
                           '#L' + result.lineNumber
         })

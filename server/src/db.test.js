@@ -28,6 +28,7 @@ const linuxRepo = {
     pullDelay: null,
     pullFailed: false,
     pulledAt: null,
+    branch: null,
 }
 
 const freebsdRepo = {
@@ -38,6 +39,7 @@ const freebsdRepo = {
     pullDelay: null,
     pullFailed: false,
     pulledAt: null,
+    branch: null,
 }
 
 describe('db', () => {

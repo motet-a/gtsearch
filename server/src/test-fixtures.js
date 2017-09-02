@@ -8,6 +8,7 @@ module.exports = {
         pullFailed: false,
         pullDelay: null,
         pulledAt: null,
+        branch: null,
     },
 
     mit: {
@@ -18,5 +19,6 @@ module.exports = {
         pullFailed: false,
         pullDelay: null,
         pulledAt: null,
+        branch: null,
     },
 }

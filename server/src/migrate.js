@@ -110,7 +110,7 @@ const getMigrations = db => [
             )
 
             await db.exec(
-                `INSERT INTO repos(
+                `INSERT INTO repos (
                     name, webUrl, gitUrl, cloned, pullFailed,
                     pullDelay, pulledAt
                 )
@@ -121,6 +121,16 @@ const getMigrations = db => [
 
             await db.exec(
                 `DROP TABLE repos_old;`
+            )
+        },
+    },
+
+    {
+        name: '4-add-branch-in-repos',
+        async up() {
+            await db.exec(
+                `ALTER TABLE repos
+                ADD COLUMN branch TEXT;`
             )
         },
     },

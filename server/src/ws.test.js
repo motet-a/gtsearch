@@ -245,6 +245,7 @@ describe('ws', () => {
                                 cloned: true,
                                 beingPulled: false,
                                 pulledAt: 123456,
+                                branch: 'master',
                             },
                         )
                     )

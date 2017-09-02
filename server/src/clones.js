@@ -95,7 +95,7 @@ class Clones extends EventEmitter {
         return path.join(this._basePath, name)
     }
 
-    async _getCurrentBranch(name) {
+    async getCurrentBranch(name) {
         const dir = this.path(name)
 
         const {stdout} = await execGit(
@@ -147,7 +147,7 @@ class Clones extends EventEmitter {
         try {
             this._emitPullStart(name)
 
-            const branch = await this._getCurrentBranch(name)
+            const branch = await this.getCurrentBranch(name)
 
             await execGit(
                 [

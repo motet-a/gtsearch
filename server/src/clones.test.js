@@ -22,7 +22,7 @@ describe('clones', () => {
         assert(await clones.exists('r'))
         assert(await fileExists(path.join(basePath, 'r', 'package.json')))
 
-        assert(await clones._getCurrentBranch('r') === 'master')
+        assert(await clones.getCurrentBranch('r') === 'master')
 
         await(clones.pull('r'))
 

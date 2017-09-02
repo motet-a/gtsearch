@@ -102,13 +102,14 @@ class Db {
         try {
             return await this._db.run(
                 `INSERT INTO repos (
-                    name, webUrl, gitUrl, cloned, pullFailed
-                ) VALUES (?, ?, ?, ?, ?);`,
+                    name, webUrl, gitUrl, cloned, pullFailed, branch
+                ) VALUES (?, ?, ?, ?, ?, ?);`,
                 repo.name,
                 repo.webUrl,
                 repo.gitUrl,
                 repo.cloned,
-                repo.pullFailed
+                repo.pullFailed,
+                repo.branch
             )
         } catch (error) {
             if (error.code === 'SQLITE_CONSTRAINT' &&
@@ -141,6 +142,17 @@ class Db {
             cloned,
             nowTimestamp(),
             name
+        )
+    }
+
+    // Returns a Promise
+    setRepoBranch(name, branchName) {
+        return this._db.run(
+            `UPDATE repos
+            SET branch = ?
+            WHERE name = ?;`,
+            branchName,
+            name,
         )
     }
 
