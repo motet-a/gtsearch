@@ -2663,9 +2663,9 @@ path-key@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
 
-path-parser@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/path-parser/-/path-parser-2.0.2.tgz#ab90ed1053b682681d1120a69208f6f6a6a734c2"
+path-parser@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/path-parser/-/path-parser-2.1.0.tgz#bf7b9335ea59ef0add7145faf6807dafb995a696"
   dependencies:
     search-params "~1.3.0"
 
@@ -3114,9 +3114,9 @@ react-redux@^5.0.5:
     loose-envify "^1.1.0"
     prop-types "^15.5.10"
 
-react-router5@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/react-router5/-/react-router5-4.3.0.tgz#b4ad5d2f5abae0e73d3b72e86cd096fb18e830fc"
+react-router5@^5.0.0:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/react-router5/-/react-router5-5.3.1.tgz#685c2af4051f1df1f2f757419d83778483dcf553"
   dependencies:
     prop-types "~15.5.10"
 
@@ -3369,23 +3369,23 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^2.0.0"
     inherits "^2.0.1"
 
-route-node@1.8.2:
-  version "1.8.2"
-  resolved "https://registry.yarnpkg.com/route-node/-/route-node-1.8.2.tgz#0e10c324b00ad9bc9b398bbfb97466fad1f9c422"
+route-node@1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/route-node/-/route-node-1.11.0.tgz#cae4f8282da2069e8183d938eb34f2ce1f4a45e1"
   dependencies:
-    path-parser "2.0.2"
+    path-parser "2.1.0"
     search-params "~1.3.0"
 
-router5.transition-path@4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/router5.transition-path/-/router5.transition-path-4.0.1.tgz#6d61d6b78e233aeff2e68f3b91b9a83338c2f723"
+router5-transition-path@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/router5-transition-path/-/router5-transition-path-5.0.0.tgz#8be2a6a0907e93083a4b7d705713f624cc60b861"
 
-router5@^4.7.1:
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/router5/-/router5-4.7.1.tgz#d8b8c011eb487ed37eaeac5ddd7ba8b4463ecdc9"
+router5@^5.0.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/router5/-/router5-5.6.0.tgz#0dc2cbc6cee12557138b821f9ea252c9784aa857"
   dependencies:
-    route-node "1.8.2"
-    router5.transition-path "4.0.1"
+    route-node "1.11.0"
+    router5-transition-path "5.0.0"
 
 safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"

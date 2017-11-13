@@ -31,10 +31,10 @@
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-redux": "^5.0.5",
-    "react-router5": "^4.3.0",
+    "react-router5": "^5.0.0",
     "react-waypoint": "^7.0.4",
     "redux": "^3.7.0",
     "redux-thunk": "^2.2.0",
-    "router5": "^4.7.1"
+    "router5": "^5.0.0"
   }
 }

@@ -53,7 +53,6 @@ const router = createRouter(
     routes,
     {
         defaultRoute: 'root',
-        strictQueryParams: false,
     },
 )
 router.usePlugin(listenersPlugin())
