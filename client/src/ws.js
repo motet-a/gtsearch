@@ -13,7 +13,8 @@ const connect = () => {
         throw new Error('WebSocket not closed')
     }
 
-    ws = new WebSocket('ws://' + location.host + '/ws')
+    const protocol = window.location.protocol == 'https:' ? 'wss:' : 'ws:'
+    ws = new WebSocket(protocol + '//' + window.location.host + '/ws')
 
     ws.onopen = event => {
         ws.onmessage = event => {
