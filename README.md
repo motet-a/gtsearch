@@ -35,7 +35,7 @@ them. Please send PRs.
 # Deploy
 
 ```sh
-docker run -d -p 8080:8080 -e GTSEARCH_ADDRESS=0.0.0.0 moteta/gtsearch:0.9
+docker run -d -p 8080:8080 -e GTSEARCH_ADDRESS=0.0.0.0 moteta/gtsearch:0.10
 ```
 
 It listens on `localhost` by default.
